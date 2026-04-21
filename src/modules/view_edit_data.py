@@ -36,36 +36,53 @@ def render_view_edit_page():
     with st.expander("🔍 Filtros Avanzados", expanded=False):
         st.subheader("Aplicar Filtros")
         
-        filter_cols = st.columns(3)
         filters = {}
         
         # Create filter inputs for each filterable column
-        available_cols = [col for col in FILTERABLE_COLUMNS if col in df.columns][:9]
-        for idx, col in enumerate(available_cols):
-            with filter_cols[idx % 3]:
-                unique_values = df[col].dropna().unique()
-                
-                # For numerical columns, offer range filter
-                if len(unique_values) > 0 and (pd.api.types.is_numeric_dtype(df[col])):
-                    min_val = df[col].min()
-                    max_val = df[col].max()
-                    filter_range = st.slider(
-                        f"Filtrar {col}",
-                        float(min_val) if pd.notna(min_val) else 0,
-                        float(max_val) if pd.notna(max_val) else 100,
-                        (float(min_val) if pd.notna(min_val) else 0, float(max_val) if pd.notna(max_val) else 100),
-                        key=f"slider_{col}"
-                    )
-                    filters[col] = ('range', filter_range)
-                else:
-                    # For text columns, offer multi-select filter
-                    selected_values = st.multiselect(
-                        f"Filtrar {col}",
-                        unique_values,
-                        key=f"filter_{col}"
-                    )
-                    if selected_values:
-                        filters[col] = ('value', selected_values)
+        available_cols = [col for col in FILTERABLE_COLUMNS if col in df.columns]
+        
+        # Display filters in groups of 3 per row
+        for batch_idx in range(0, len(available_cols), 3):
+            batch_cols = available_cols[batch_idx:batch_idx+3]
+            filter_cols = st.columns(3)
+            
+            for col_idx, col in enumerate(batch_cols):
+                with filter_cols[col_idx]:
+                    unique_values = df[col].dropna().unique()
+                    
+                    # For numerical columns, offer range filter
+                    if len(unique_values) > 0 and (pd.api.types.is_numeric_dtype(df[col])):
+                        min_val = df[col].min()
+                        max_val = df[col].max()
+                        
+                        # Only show slider if min != max
+                        if pd.notna(min_val) and pd.notna(max_val) and float(min_val) < float(max_val):
+                            filter_range = st.slider(
+                                f"Filtrar {col}",
+                                float(min_val),
+                                float(max_val),
+                                (float(min_val), float(max_val)),
+                                key=f"slider_{col}"
+                            )
+                            filters[col] = ('range', filter_range)
+                        else:
+                            # If all values are the same, show multiselect instead
+                            selected_values = st.multiselect(
+                                f"Filtrar {col}",
+                                sorted(unique_values, key=str),
+                                key=f"filter_{col}"
+                            )
+                            if selected_values:
+                                filters[col] = ('value', selected_values)
+                    else:
+                        # For text columns, offer multi-select filter
+                        selected_values = st.multiselect(
+                            f"Filtrar {col}",
+                            sorted(unique_values, key=str),
+                            key=f"filter_{col}"
+                        )
+                        if selected_values:
+                            filters[col] = ('value', selected_values)
         
         # Apply filters
         filtered_df = df.copy()
