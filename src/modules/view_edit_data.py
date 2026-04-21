@@ -148,20 +148,20 @@ def render_view_edit_page():
                 st.rerun()
     
     # Delete record functionality
-    st.subheader("🗑️ Eliminar Registro")
-    col1, col2 = st.columns([3, 1])
+    # st.subheader("🗑️ Eliminar Registro")
+    # col1, col2 = st.columns([3, 1])
     
-    with col1:
-        selected_id = st.selectbox(
-            "Selecciona un registro para eliminar:",
-            options=df['id_file'].tolist(),
-            format_func=lambda x: f"ID {x} - {df[df['id_file'] == x]['name'].values[0] if len(df[df['id_file'] == x]) > 0 else 'Unknown'}"
-        )
+    # with col1:
+    #     selected_id = st.selectbox(
+    #         "Selecciona un registro para eliminar:",
+    #         options=df['id_file'].tolist(),
+    #         format_func=lambda x: f"ID {x} - {df[df['id_file'] == x]['name'].values[0] if len(df[df['id_file'] == x]) > 0 else 'Unknown'}"
+    #     )
     
-    with col2:
-        st.write("")  # Spacer
-        if st.button("🗑️ Eliminar", use_container_width=True):
-            delete_record(selected_id)
+    # with col2:
+    #     st.write("")  # Spacer
+    #     if st.button("🗑️ Eliminar", use_container_width=True):
+    #         delete_record(selected_id)
 
 
 def validate_field(field_name, value):

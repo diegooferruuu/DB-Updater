@@ -31,7 +31,7 @@ with st.sidebar:
     st.title("🗂️ Menú de Navegación")
     page = st.radio(
         "Selecciona una sección:",
-        ["➕ Agregar Datos", "📊 Ver y Editar Datos"],
+        ["📊 Ver y Editar Datos"], #"➕ Agregar Datos", 
         key="page_selector"
     )
     
@@ -51,7 +51,8 @@ st.write(APP_DESCRIPTION)
 st.divider()
 
 # Route to the selected page
-if page == "➕ Agregar Datos":
-    add_data.render_add_data_page()
-elif page == "📊 Ver y Editar Datos":
+
+if page == "📊 Ver y Editar Datos":
     view_edit_data.render_view_edit_page()
+# elif page == "➕ Agregar Datos":
+#     add_data.render_add_data_page()

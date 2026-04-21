@@ -63,8 +63,8 @@ def validate_email(email):
 
 # Field definitions for the database
 FIELD_DEFINITIONS = {
-    'id_file': {'type': 'integer', 'primary_key': True, 'editable': False, 'filterable': True},
-    'id_source': {'type': 'integer', 'required': True, 'validator': validate_integer, 'filterable': True},
+    'id_file': {'type': 'integer', 'primary_key': True, 'editable': False, 'filterable': False},
+    'id_source': {'type': 'integer', 'required': True, 'validator': validate_integer, 'filterable': False},
     'name': {'type': 'string', 'required': True, 'filterable': True},
     'code': {'type': 'string', 'required': False, 'filterable': True},
     'main_url': {'type': 'string', 'required': False, 'validator': validate_url, 'filterable': True},
@@ -110,4 +110,4 @@ TIPO_ERROR_OPTIONS = ['Datos Incompletos', 'URL Inválida', 'Path Incorrecto', '
 HIDDEN_COLUMNS_DEFAULT = []
 
 # All filterable columns
-FILTERABLE_COLUMNS = [key for key, value in FIELD_DEFINITIONS.items() if value.get('filterable', False)]
+FILTERABLE_COLUMNS = [key for key, value in FIELD_DEFINITIONS.items() if (value.get('filterable', False))]
