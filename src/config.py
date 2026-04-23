@@ -20,7 +20,7 @@ TABLE_NAME = 'file'
 
 # App Configuration
 APP_TITLE = "Datax DBUpdater"
-# APP_DESCRIPTION = "Manage your database with ease"
+APP_DESCRIPTION = "Manage File Table"
 
 # Validation Functions
 def validate_url(url):
