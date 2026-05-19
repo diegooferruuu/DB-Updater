@@ -132,17 +132,47 @@ def render_view_edit_page():
     # Remove hidden columns from view
     display_df = df.drop(columns=st.session_state.hidden_columns, errors='ignore')
     
+    # Create table with DAG Link column
+    table_df = display_df.copy()
+    if 'code' in table_df.columns:
+        # Insert DAG Link column right after code
+        dag_links = []
+        for code in table_df['code']:
+            if pd.notna(code) and code != '':
+                url = f"http://10.0.0.12:8080/dags/{code}/grid?search={code}"
+                dag_links.append(url)
+            else:
+                dag_links.append('')
+        
+        # Find the index of 'code' column and insert after it
+        code_idx = table_df.columns.get_loc('code')
+        table_df.insert(code_idx + 1, 'DAG Link', dag_links)
+    
     # Create editable data table
     st.subheader("📋 Tabla de Datos")
-    st.write("💡 **Haz doble clic en cualquier celda para editar** (excepto ID y fechas)")
+    st.write("💡 **Haz clic en los enlaces DAG para abrir en Airflow** | **Doble clic en celdas para editar** (excepto ID y fechas)")
+    
+    # Configure column display
+    from streamlit.column_config import LinkColumn
+    column_config = {}
+    if 'DAG Link' in table_df.columns:
+        column_config['DAG Link'] = LinkColumn(
+            "DAG Link",
+            display_text="🔗 Ver DAG"
+        )
     
     # Display the dataframe with editor
     edited_df = st.data_editor(
-        display_df,
+        table_df,
         use_container_width=True,
         key="data_editor",
-        disabled=['id_file', 'creation_date', 'update_date'],
+        disabled=['id_file', 'creation_date', 'update_date', 'code', 'DAG Link'],
+        column_config=column_config
     )
+    
+    # Remove the DAG Link column from edited_df since it's not in the original
+    if 'DAG Link' in edited_df.columns:
+        edited_df = edited_df.drop(columns=['DAG Link'])
     
     # Merge back the hidden columns for full comparison
     edited_full_df = edited_df.copy()

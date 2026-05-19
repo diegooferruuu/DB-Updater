@@ -66,7 +66,7 @@ FIELD_DEFINITIONS = {
     'id_file': {'type': 'integer', 'primary_key': True, 'editable': False, 'filterable': False},
     'id_source': {'type': 'integer', 'required': True, 'validator': validate_integer, 'filterable': False},
     'name': {'type': 'string', 'required': True, 'filterable': True},
-    'code': {'type': 'string', 'required': False, 'filterable': True},
+    'code': {'type': 'string', 'required': False, 'editable': False, 'filterable': True},
     'main_url': {'type': 'string', 'required': False, 'validator': validate_url, 'filterable': True},
     'path': {'type': 'string', 'required': False, 'validator': validate_path, 'filterable': False},
     'type': {'type': 'string', 'required': False, 'filterable': True},
@@ -88,10 +88,16 @@ FIELD_DEFINITIONS = {
     'section_path': {'type': 'string', 'required': False, 'filterable': False},
     'short_name': {'type': 'string', 'required': False, 'filterable': True},
     'download_type': {'type': 'string', 'required': False, 'filterable': True},
-    'responsable': {'type': 'string', 'required': False, 'filterable': True},
+    'assigned_to': {'type': 'string', 'required': False, 'filterable': True},
     'control_estado': {'type': 'string', 'required': False, 'filterable': True},
     'tipo_error': {'type': 'string', 'required': False, 'filterable': True},
     'display_name': {'type': 'string', 'required': False, 'filterable': True},
+    'color': {'type': 'string', 'required': False, 'filterable': True},
+    'task': {'type': 'string', 'required': False, 'filterable': True},
+    'is_false_positive': {'type': 'string', 'required': False, 'filterable': True},
+    'Accion': {'type': 'string', 'required': False, 'filterable': True},
+    'delay': {'type': 'string', 'required': False, 'filterable': True},
+    'general_status': {'type': 'string', 'required': False, 'filterable': True},
 }
 
 # Fields that require validation
