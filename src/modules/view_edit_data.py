@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
+import subprocess
+import os
 from db_utils import get_db
 from config import FIELD_DEFINITIONS, TABLE_NAME, FILTERABLE_COLUMNS, CONTROL_ESTADO_OPTIONS, TIPO_ERROR_OPTIONS
 
@@ -136,6 +138,7 @@ def render_view_edit_page():
     table_df = display_df.copy()
     original_codes = None
     original_main_urls = None
+    original_paths = None
     
     if 'code' in table_df.columns:
         # Store original code values before replacing
@@ -157,9 +160,36 @@ def render_view_edit_page():
     if 'main_url' in table_df.columns:
         original_main_urls = table_df['main_url'].copy()
     
+    # Convert path column to file:// URLs
+    if 'path' in table_df.columns:
+        original_paths = table_df['path'].copy()
+        
+        file_urls = []
+        for path in table_df['path']:
+            if pd.notna(path) and path != '':
+                path_str = str(path).strip()
+                # Convert UNC paths (\\server\share) and local paths to file:// URLs
+                # For UNC paths, keep them as-is with file://
+                # For local paths, ensure proper formatting
+                if path_str.startswith('\\\\'):
+                    # UNC path: \\10.0.0.9\spim\... -> file:///\\10.0.0.9\spim\...
+                    file_url = f"file:///{path_str}"
+                elif path_str.startswith('/'):
+                    # Unix-style path
+                    file_url = f"file://{path_str}"
+                else:
+                    # Windows local path: C:\Users\... -> file:///C:\Users\...
+                    file_url = f"file:///{path_str}"
+                
+                file_urls.append(file_url)
+            else:
+                file_urls.append('')
+        
+        table_df['path'] = file_urls
+    
     # Create editable data table
     st.subheader("📋 Tabla de Datos")
-    st.write("💡 **Haz clic en los códigos/URLs para abrir** | **Doble clic en celdas para editar** (excepto ID y fechas)")
+    st.write("💡 **Haz clic en los códigos/URLs/paths para abrir** | **Doble clic en celdas para editar** (excepto ID y fechas)")
     
     # Configure column display
     from streamlit.column_config import LinkColumn
@@ -176,6 +206,12 @@ def render_view_edit_page():
             display_text=r"https?://(.+)" 
         )
     
+    if 'path' in table_df.columns:
+        column_config['path'] = LinkColumn(
+            "path",
+            display_text=r"\\(.+)|file:///(.+)"
+        )
+    
     # Display the dataframe with editor
     edited_df = st.data_editor(
         table_df,
@@ -188,6 +224,9 @@ def render_view_edit_page():
     # Restore original values for comparison (URLs are changed back to original values)
     if original_codes is not None:
         edited_df['code'] = original_codes.values
+    
+    if original_paths is not None:
+        edited_df['path'] = original_paths.values
     
     # Merge back the hidden columns for full comparison
     edited_full_df = edited_df.copy()
@@ -283,9 +322,9 @@ def save_changes(original_df, edited_df):
                 success, message = db.update_record(record_id, changed_fields)
                 if success:
                     successful_updates += 1
-                    st.success(f"✅ Registro {record_id} actualizado exitosamente")
+                    st.success(f"Registro {record_id} actualizado exitosamente")
                 else:
-                    st.error(f"❌ Error al actualizar registro {record_id}: {message}")
+                    st.error(f"Error al actualizar registro {record_id}: {message}")
         
         # Display validation errors if any
         if validation_errors:
@@ -319,10 +358,30 @@ def delete_record(record_id):
     db.disconnect()
     
     if success:
-        st.success(f"✅ Registro {record_id} eliminado exitosamente")
+        st.success(f"Registro {record_id} eliminado exitosamente")
         st.rerun()
     else:
         st.error(f"❌ Error al eliminar registro: {message}")
+
+
+def open_directory(path):
+    """Open a directory in Windows File Explorer"""
+    try:
+        # Normalize path for Windows
+        path = str(path).strip()
+        
+        # Check if it's a UNC path or local path
+        if path.startswith('\\\\') or path.startswith('//'):
+            # UNC path - open directly
+            subprocess.Popen(f'explorer.exe "{path}"')
+        elif os.path.exists(path):
+            # Local path that exists
+            subprocess.Popen(f'explorer.exe "{path}"')
+        else:
+            # Try anyway (path might be on network but not accessible yet)
+            subprocess.Popen(f'explorer.exe "{path}"')
+    except Exception as e:
+        st.error(f"❌ Error al abrir directorio: {str(e)}")
 
 
 if __name__ == "__main__":
