@@ -132,8 +132,11 @@ def render_view_edit_page():
     # Remove hidden columns from view
     display_df = df.drop(columns=st.session_state.hidden_columns, errors='ignore')
     
-    # Create table with DAG Link column
+    # Create table with DAG Link column and main_url links
     table_df = display_df.copy()
+    original_codes = None
+    original_main_urls = None
+    
     if 'code' in table_df.columns:
         # Store original code values before replacing
         original_codes = table_df['code'].copy()
@@ -147,12 +150,16 @@ def render_view_edit_page():
             else:
                 dag_links.append('')
         
-        # Replace the code column with links and rename it
+        # Replace the code column with links
         table_df['code'] = dag_links
+    
+    # Store original main_url values and keep them as URLs for display
+    if 'main_url' in table_df.columns:
+        original_main_urls = table_df['main_url'].copy()
     
     # Create editable data table
     st.subheader("📋 Tabla de Datos")
-    st.write("💡 **Haz clic en los códigos para abrir en Airflow** | **Doble clic en celdas para editar** (excepto ID y fechas)")
+    st.write("💡 **Haz clic en los códigos/URLs para abrir** | **Doble clic en celdas para editar** (excepto ID y fechas)")
     
     # Configure column display
     from streamlit.column_config import LinkColumn
@@ -161,6 +168,12 @@ def render_view_edit_page():
         column_config['code'] = LinkColumn(
             "code",
             display_text=r"dag_id=(.+)" 
+        )
+    
+    if 'main_url' in table_df.columns:
+        column_config['main_url'] = LinkColumn(
+            "main_url",
+            display_text=r"https?://(.+)" 
         )
     
     # Display the dataframe with editor
@@ -172,8 +185,9 @@ def render_view_edit_page():
         column_config=column_config
     )
     
-    # Restore original code column values (not URLs) for comparison
-    edited_df['code'] = original_codes.values
+    # Restore original values for comparison (URLs are changed back to original values)
+    if original_codes is not None:
+        edited_df['code'] = original_codes.values
     
     # Merge back the hidden columns for full comparison
     edited_full_df = edited_df.copy()
