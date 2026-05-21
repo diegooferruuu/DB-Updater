@@ -262,8 +262,12 @@ def save_changes(original_df, edited_df):
         
         # Find rows that were modified and validate
         for idx, row in edited_df.iterrows():
-            original_row = original_df.iloc[idx]
             record_id = row['id_file']
+            # Find original row by id_file instead of using iloc with potentially invalid index
+            original_matches = original_df[original_df['id_file'] == record_id]
+            if len(original_matches) == 0:
+                continue  # Skip if not found
+            original_row = original_matches.iloc[0]
             
             changed_fields = {}
             for col in edited_df.columns:
