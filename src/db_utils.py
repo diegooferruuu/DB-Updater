@@ -122,6 +122,21 @@ class DatabaseConnection:
         except Exception as e:
             print(f"Error fetching record: {e}")
             return None
+    
+    def get_all_sources(self):
+        """Fetch all sources from the source table"""
+        try:
+            if not self.conn:
+                self.connect()
+            
+            self.cursor.execute("SELECT id_source, short_name FROM source ORDER BY short_name;")
+            records = self.cursor.fetchall()
+            
+            # Convert RealDictRow to regular dict for JSON serialization
+            return [dict(record) for record in records]
+        except Exception as e:
+            print(f"Error fetching sources: {e}")
+            return []
 
 
 def get_db():

@@ -16,10 +16,16 @@ def render_view_edit_page():
     db = get_db()
     if db.connect():
         records = db.get_all_records()
+        sources = db.get_all_sources()
         db.disconnect()
     else:
         st.error("❌ No se pudo conectar a la base de datos")
         return
+    
+    # Create source mapping
+    source_id_to_name = {s['id_source']: s['short_name'] for s in sources}
+    source_name_to_id = {s['short_name']: s['id_source'] for s in sources}
+    source_short_names = sorted(source_name_to_id.keys())
     
     if not records:
         st.info("📭 No hay registros en la base de datos")
@@ -136,6 +142,13 @@ def render_view_edit_page():
     table_df = display_df.copy()
     original_codes = None
     original_main_urls = None
+    original_id_source = None
+    
+    # Replace id_source with short_name for display
+    if 'id_source' in table_df.columns:
+        original_id_source = table_df['id_source'].copy()
+        # Map id to short_name, filling NaN values from original
+        table_df['id_source'] = table_df['id_source'].map(source_id_to_name).fillna(original_id_source)
     
     if 'code' in table_df.columns:
         # Store original code values before replacing
@@ -162,8 +175,16 @@ def render_view_edit_page():
     st.write("💡 **Haz clic en los códigos/URLs para abrir** | **Doble clic en celdas para editar** (excepto ID y fechas)")
     
     # Configure column display
-    from streamlit.column_config import LinkColumn
+    from streamlit.column_config import LinkColumn, SelectboxColumn
     column_config = {}
+    
+    if 'id_source' in table_df.columns:
+        column_config['id_source'] = SelectboxColumn(
+            "id_source",
+            options=source_short_names,
+            required=True
+        )
+    
     if 'code' in table_df.columns:
         column_config['code'] = LinkColumn(
             "code",
@@ -188,6 +209,10 @@ def render_view_edit_page():
     # Restore original values for comparison (URLs are changed back to original values)
     if original_codes is not None:
         edited_df['code'] = original_codes.values
+    
+    # Convert short_name back to id_source
+    if original_id_source is not None:
+        edited_df['id_source'] = edited_df['id_source'].map(source_name_to_id).fillna(original_id_source)
     
     # Merge back the hidden columns for full comparison
     edited_full_df = edited_df.copy()
