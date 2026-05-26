@@ -72,7 +72,7 @@ FIELD_DEFINITIONS = {
     'type': {'type': 'string', 'required': False, 'filterable': True},
     'specific_url': {'type': 'string', 'required': False, 'validator': validate_url, 'filterable': False},
     'alternate_url': {'type': 'string', 'required': False, 'validator': validate_url, 'filterable': False},
-    'navigation_path': {'type': 'string', 'required': False, 'validator': validate_path, 'filterable': False},
+    'navigation_path': {'type': 'string', 'required': False, 'filterable': False},
     'publication_frequency': {'type': 'string', 'required': False, 'filterable': True},
     'priority': {'type': 'integer', 'required': False, 'validator': validate_integer, 'filterable': True},
     'state': {'type': 'string', 'required': False, 'filterable': True},
